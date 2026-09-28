@@ -30,9 +30,19 @@
 
 <!-- Page Loader -->
 <div class="page-loader" id="pageLoader">
+  <div class="loader-bg" id="loaderBg"></div>
   <div class="loader-content">
-    <div class="loader-dot"></div>
-    <div class="loader-text">加载中</div>
+    <div class="loader-brand">
+      <span class="loader-brand-char" style="--d:0s">苏</span>
+      <span class="loader-brand-char" style="--d:0.08s">俊</span>
+      <span class="loader-brand-char" style="--d:0.16s">旭</span>
+    </div>
+    <div class="loader-subtitle">以设计之美，启创新思维之光</div>
+    <div class="loader-progress-wrap">
+      <div class="loader-progress-bar" id="loaderBar"></div>
+    </div>
+    <div class="loader-percent" id="loaderPercent">0%</div>
+    <div class="loader-hint">移动鼠标 / 拖拽以揭示色彩</div>
   </div>
 </div>
 
@@ -78,6 +88,16 @@
 
 <!-- Hero -->
 <section class="hero" id="top">
+  <!-- Paint Reveal Canvas -->
+  <div class="hero-reveal-wrap" id="heroRevealWrap">
+    <div class="hero-reveal-gray"></div>
+    <div class="hero-reveal-color"></div>
+    <canvas class="hero-reveal-canvas" id="heroRevealCanvas"></canvas>
+    <div class="hero-reveal-hint" id="heroRevealHint">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+      <span>拖拽揭示色彩</span>
+    </div>
+  </div>
   <div class="hero-eyebrow reveal">
     <span class="hero-eyebrow-dot"></span>
     <span>河北工业大学 · 助教</span>
@@ -623,13 +643,151 @@
 </footer>
 
 <script>
-  // ===== Page Loader =====
-  window.addEventListener('load', function() {
-    var loader = document.getElementById('pageLoader');
-    setTimeout(function() {
-      loader.classList.add('loaded');
-      setTimeout(function() { loader.style.display = 'none'; }, 700);
-    }, 500);
+  // ===== Page Loader with Progress =====
+  var loaderBar = document.getElementById('loaderBar');
+  var loaderPercent = document.getElementById('loaderPercent');
+  var pageLoader = document.getElementById('pageLoader');
+  var loadProgress = 0;
+  var loadInterval = setInterval(function() {
+    loadProgress += Math.random() * 12 + 3;
+    if (loadProgress >= 100) {
+      loadProgress = 100;
+      clearInterval(loadInterval);
+      setTimeout(function() {
+        pageLoader.classList.add('loaded');
+        setTimeout(function() { pageLoader.style.display = 'none'; }, 800);
+      }, 300);
+    }
+    loaderBar.style.width = loadProgress + '%';
+    loaderPercent.textContent = Math.floor(loadProgress) + '%';
+  }, 80);
+
+  // ===== Hero Paint Reveal (Canvas Mask) =====
+  var revealWrap = document.getElementById('heroRevealWrap');
+  var revealCanvas = document.getElementById('heroRevealCanvas');
+  var revealHint = document.getElementById('heroRevealHint');
+  var ctx = revealCanvas.getContext('2d');
+  var revealW = 0, revealH = 0;
+  var isDrawing = false;
+  var lastX = 0, lastY = 0;
+  var revealCount = 0;
+
+  function resizeCanvas() {
+    var rect = revealWrap.getBoundingClientRect();
+    var dpr = window.devicePixelRatio || 1;
+    revealW = rect.width;
+    revealH = rect.height;
+    revealCanvas.width = revealW * dpr;
+    revealCanvas.height = revealH * dpr;
+    revealCanvas.style.width = revealW + 'px';
+    revealCanvas.style.height = revealH + 'px';
+    ctx.scale(dpr, dpr);
+    // Fill the canvas with a mask covering the grayscale image
+    ctx.fillStyle = 'rgba(43, 40, 35, 1)';
+    ctx.fillRect(0, 0, revealW, revealH);
+  }
+
+  setTimeout(resizeCanvas, 100);
+  window.addEventListener('resize', function() {
+    var temp = ctx.getImageData(0, 0, revealCanvas.width, revealCanvas.height);
+    resizeCanvas();
+    ctx.putImageData(temp, 0, 0);
+  });
+
+  function drawReveal(x, y) {
+    // Draw a soft circle that "erases" the mask to reveal color underneath
+    ctx.globalCompositeOperation = 'destination-out';
+    var radius = 35;
+    var gradient = ctx.createRadialGradient(x, y, 0, x, y, radius);
+    gradient.addColorStop(0, 'rgba(0,0,0,1)');
+    gradient.addColorStop(0.6, 'rgba(0,0,0,0.6)');
+    gradient.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.fillStyle = gradient;
+    ctx.beginPath();
+    ctx.arc(x, y, radius, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Draw a line between last position and current for smooth strokes
+    if (lastX && lastY) {
+      var dist = Math.sqrt((x - lastX) * (x - lastX) + (y - lastY) * (y - lastY));
+      if (dist > 2) {
+        var steps = Math.ceil(dist / 4);
+        for (var i = 0; i <= steps; i++) {
+          var lx = lastX + (x - lastX) * (i / steps);
+          var ly = lastY + (y - lastY) * (i / steps);
+          ctx.beginPath();
+          ctx.arc(lx, ly, radius * 0.7, 0, Math.PI * 2);
+          var grad2 = ctx.createRadialGradient(lx, ly, 0, lx, ly, radius * 0.7);
+          grad2.addColorStop(0, 'rgba(0,0,0,0.8)');
+          grad2.addColorStop(1, 'rgba(0,0,0,0)');
+          ctx.fillStyle = grad2;
+          ctx.fill();
+        }
+      }
+    }
+    ctx.globalCompositeOperation = 'source-over';
+    lastX = x;
+    lastY = y;
+    revealCount++;
+    if (revealCount > 3) revealHint.classList.add('hidden');
+  }
+
+  function getPos(e) {
+    var rect = revealCanvas.getBoundingClientRect();
+    if (e.touches && e.touches[0]) {
+      return { x: e.touches[0].clientX - rect.left, y: e.touches[0].clientY - rect.top };
+    }
+    return { x: e.clientX - rect.left, y: e.clientY - rect.top };
+  }
+
+  // Mouse events
+  revealCanvas.addEventListener('mousedown', function(e) {
+    isDrawing = true;
+    var pos = getPos(e);
+    lastX = pos.x; lastY = pos.y;
+    drawReveal(pos.x, pos.y);
+  });
+  revealCanvas.addEventListener('mousemove', function(e) {
+    if (!isDrawing) return;
+    var pos = getPos(e);
+    drawReveal(pos.x, pos.y);
+  });
+  revealCanvas.addEventListener('mouseup', function() { isDrawing = false; lastX = 0; lastY = 0; });
+  revealCanvas.addEventListener('mouseleave', function() { isDrawing = false; lastX = 0; lastY = 0; });
+
+  // Touch events
+  revealCanvas.addEventListener('touchstart', function(e) {
+    e.preventDefault();
+    isDrawing = true;
+    var pos = getPos(e);
+    lastX = pos.x; lastY = pos.y;
+    drawReveal(pos.x, pos.y);
+  }, { passive: false });
+  revealCanvas.addEventListener('touchmove', function(e) {
+    e.preventDefault();
+    if (!isDrawing) return;
+    var pos = getPos(e);
+    drawReveal(pos.x, pos.y);
+  }, { passive: false });
+  revealCanvas.addEventListener('touchend', function() { isDrawing = false; lastX = 0; lastY = 0; });
+
+  // Also allow hover-draw (no click needed) for a smoother feel
+  revealCanvas.addEventListener('mousemove', function(e) {
+    if (isDrawing) return;
+    var pos = getPos(e);
+    // Light auto-reveal on hover - smaller radius
+    ctx.globalCompositeOperation = 'destination-out';
+    var radius = 20;
+    var gradient = ctx.createRadialGradient(pos.x, pos.y, 0, pos.x, pos.y, radius);
+    gradient.addColorStop(0, 'rgba(0,0,0,0.35)');
+    gradient.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.fillStyle = gradient;
+    ctx.beginPath();
+    ctx.arc(pos.x, pos.y, radius, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.globalCompositeOperation = 'source-over';
+    revealCount++;
+    if (revealCount > 8) revealHint.classList.add('hidden');
   });
 
   // ===== Custom Cursor =====
