@@ -899,11 +899,8 @@ section { padding: 80px 0; }
   position: fixed;
   inset: 0;
   z-index: 9999;
-  display: flex;
-  align-items: center;
-  justify-content: center;
   overflow: hidden;
-  transition: opacity 0.8s cubic-bezier(0.22, 1, 0.36, 1), clip-path 0.8s cubic-bezier(0.22, 1, 0.36, 1);
+  transition: clip-path 1s cubic-bezier(0.76, 0, 0.24, 1);
   clip-path: inset(0 0 0 0);
 }
 .page-loader.loaded {
@@ -913,78 +910,71 @@ section { padding: 80px 0; }
 .loader-bg {
   position: absolute;
   inset: 0;
-  background: linear-gradient(135deg, #2C2823 0%, #1a1814 100%);
+  background: url('assets/portrait-new.jpg') center 30% / cover no-repeat;
   z-index: 0;
+  transform: scale(1.1);
+  animation: loaderZoom 3s ease-out forwards;
 }
-.loader-content {
-  position: relative;
+@keyframes loaderZoom {
+  to { transform: scale(1); }
+}
+.loader-overlay {
+  position: absolute;
+  inset: 0;
   z-index: 1;
+  background: linear-gradient(180deg, rgba(245,240,232,0.25) 0%, rgba(245,240,232,0.05) 40%, rgba(245,240,232,0.35) 100%);
+}
+.loader-bottom {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  z-index: 2;
+  padding: 32px 48px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+}
+.loader-brand-text {
+  font-family: var(--sans);
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #2C2823;
+  letter-spacing: 0.04em;
+  opacity: 0;
+  animation: loaderFadeIn 0.6s 0.3s ease forwards;
+}
+@keyframes loaderFadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+.loader-percent-group {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: 20px;
+  align-items: flex-end;
+  gap: 8px;
 }
-.loader-brand {
-  font-family: var(--serif);
-  font-size: clamp(3rem, 10vw, 5rem);
-  font-weight: 600;
-  color: var(--bg);
-  letter-spacing: 0.05em;
-  display: flex;
-  gap: 2px;
+.loader-percent {
+  font-family: var(--sans);
+  font-size: 2rem;
+  font-weight: 700;
+  color: #2C2823;
+  letter-spacing: -0.02em;
+  line-height: 1;
 }
-.loader-brand-char {
-  display: inline-block;
-  opacity: 0;
-  transform: translateY(40px) rotateX(-90deg);
-  animation: charReveal 0.7s cubic-bezier(0.22, 1, 0.36, 1) forwards;
-  animation-delay: var(--d, 0s);
-}
-@keyframes charReveal {
-  to { opacity: 1; transform: translateY(0) rotateX(0); }
-}
-.loader-subtitle {
-  font-family: var(--serif);
-  font-size: 0.875rem;
-  color: rgba(245, 240, 232, 0.5);
-  letter-spacing: 0.15em;
-  opacity: 0;
-  animation: fadeInUp 0.8s 0.4s cubic-bezier(0.22, 1, 0.36, 1) forwards;
-}
-@keyframes fadeInUp {
-  from { opacity: 0; transform: translateY(12px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-.loader-progress-wrap {
-  width: 240px;
-  height: 2px;
-  background: rgba(245, 240, 232, 0.12);
-  border-radius: 999px;
+.loader-progress-line {
+  width: 200px;
+  height: 1.5px;
+  background: rgba(44, 40, 35, 0.15);
   overflow: hidden;
-  margin-top: 8px;
 }
 .loader-progress-bar {
   height: 100%;
   width: 0;
-  background: linear-gradient(90deg, var(--moss), var(--gold));
-  border-radius: 999px;
+  background: #2C2823;
   transition: width 0.05s linear;
 }
-.loader-percent {
-  font-family: var(--serif);
-  font-size: 0.75rem;
-  color: rgba(245, 240, 232, 0.4);
-  letter-spacing: 0.1em;
+@media (max-width: 768px) {
+  .loader-bottom { padding: 20px 24px; }
+  .loader-percent { font-size: 1.5rem; }
+  .loader-progress-line { width: 120px; }
 }
-.loader-hint {
-  font-size: 0.6875rem;
-  color: rgba(122, 155, 118, 0.7);
-  letter-spacing: 0.12em;
-  margin-top: 4px;
-  opacity: 0;
-  animation: hintBlink 2s 1.5s ease-in-out infinite;
-}
-@keyframes hintBlink { 0%, 100% { opacity: 0.3; } 50% { opacity: 0.9; } }
 
 /* ===== Hero Paint Reveal ===== */
 .hero-reveal-wrap {
@@ -1134,5 +1124,5 @@ section.section-glow {
   .cursor-dot, .cursor-ring, .cursor-ripple { display: none !important; }
   .page-loader { display: none !important; }
   .section-overlay { display: none !important; }
-  .magneticElements, .cert-card, .highlight-card { transform: none !important; }
+  .cert-card, .highlight-card { transform: none !important; }
 }
