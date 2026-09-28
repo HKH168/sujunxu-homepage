@@ -922,7 +922,7 @@ section { padding: 80px 0; }
   position: absolute;
   inset: 0;
   z-index: 1;
-  background: linear-gradient(180deg, rgba(245,240,232,0.25) 0%, rgba(245,240,232,0.05) 40%, rgba(245,240,232,0.35) 100%);
+  background: linear-gradient(180deg, rgba(0,0,0,0.15) 0%, transparent 30%, rgba(0,0,0,0.25) 100%);
 }
 .loader-bottom {
   position: absolute;
@@ -938,7 +938,7 @@ section { padding: 80px 0; }
   font-family: var(--sans);
   font-size: 0.75rem;
   font-weight: 600;
-  color: #2C2823;
+  color: #fff;
   letter-spacing: 0.04em;
   opacity: 0;
   animation: loaderFadeIn 0.6s 0.3s ease forwards;
@@ -954,7 +954,7 @@ section { padding: 80px 0; }
   font-family: var(--sans);
   font-size: 2.5rem;
   font-weight: 800;
-  color: #2C2823;
+  color: #fff;
   letter-spacing: -0.03em;
   line-height: 1;
 }
@@ -962,7 +962,7 @@ section { padding: 80px 0; }
   font-family: var(--sans);
   font-size: 0.5625rem;
   font-weight: 400;
-  color: rgba(44, 40, 35, 0.4);
+  color: rgba(255, 255, 255, 0.5);
   letter-spacing: 0.15em;
   text-transform: uppercase;
   margin-top: 4px;
