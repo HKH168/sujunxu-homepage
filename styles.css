@@ -910,7 +910,7 @@ section { padding: 80px 0; }
 .loader-bg {
   position: absolute;
   inset: 0;
-  background: url('assets/portrait-new.jpg') center 30% / cover no-repeat;
+  background: url('assets/sky-watercolor.png') center / cover no-repeat;
   z-index: 0;
   transform: scale(1.1);
   animation: loaderZoom 3s ease-out forwards;
@@ -922,7 +922,7 @@ section { padding: 80px 0; }
   position: absolute;
   inset: 0;
   z-index: 1;
-  background: linear-gradient(180deg, rgba(0,0,0,0.15) 0%, transparent 30%, rgba(0,0,0,0.25) 100%);
+  background: linear-gradient(180deg, transparent 0%, transparent 60%, rgba(245,240,232,0.15) 100%);
 }
 .loader-bottom {
   position: absolute;
@@ -938,7 +938,7 @@ section { padding: 80px 0; }
   font-family: var(--sans);
   font-size: 0.75rem;
   font-weight: 600;
-  color: #fff;
+  color: #2C2823;
   letter-spacing: 0.04em;
   opacity: 0;
   animation: loaderFadeIn 0.6s 0.3s ease forwards;
@@ -952,9 +952,9 @@ section { padding: 80px 0; }
 }
 .loader-percent {
   font-family: var(--sans);
-  font-size: 2.5rem;
+  font-size: 4rem;
   font-weight: 800;
-  color: #fff;
+  color: #2C2823;
   letter-spacing: -0.03em;
   line-height: 1;
 }
@@ -962,7 +962,7 @@ section { padding: 80px 0; }
   font-family: var(--sans);
   font-size: 0.5625rem;
   font-weight: 400;
-  color: rgba(255, 255, 255, 0.5);
+  color: rgba(44, 40, 35, 0.4);
   letter-spacing: 0.15em;
   text-transform: uppercase;
   margin-top: 4px;
@@ -992,37 +992,18 @@ section { padding: 80px 0; }
   background-position: center 30%;
 }
 .hero-reveal-gray {
-  background-image: url('assets/portrait-new.jpg');
-  filter: grayscale(0.3) brightness(0.85);
-  z-index: 1;
+  display: none;
 }
 .hero-reveal-color {
   background-image: url('assets/portrait-new.jpg');
   z-index: 0;
 }
 .hero-reveal-canvas {
-  position: absolute;
-  inset: 0;
-  z-index: 2;
-  cursor: crosshair;
+  display: none;
 }
 .hero-reveal-hint {
-  position: absolute;
-  bottom: 16px; right: 20px;
-  z-index: 3;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 6px 14px;
-  border-radius: 999px;
-  background: rgba(43, 40, 35, 0.6);
-  backdrop-filter: blur(6px);
-  color: var(--bg);
-  font-size: 0.6875rem;
-  letter-spacing: 0.08em;
-  transition: opacity 0.4s;
+  display: none;
 }
-.hero-reveal-hint.hidden { opacity: 0; }
 @media (max-width: 768px) {
   .hero-reveal-wrap { height: 220px; }
 }
