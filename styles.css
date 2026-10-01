@@ -593,19 +593,62 @@ section { padding: 80px 0; }
 .achievement-sub { font-size: 0.75rem; color: var(--ink-faint); line-height: 1.5; }
 
 /* ===== Award Certificates ===== */
+.cert-gallery-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
 .cert-gallery-title {
   font-family: var(--serif);
   font-size: 1.25rem;
   font-weight: 600;
-  margin-bottom: 20px;
   display: flex;
   align-items: center;
   gap: 8px;
   color: var(--ink);
+  margin-bottom: 0;
 }
-.cert-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
+.cert-nav { display: flex; gap: 8px; }
+.cert-nav-btn {
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  border: 1px solid var(--line);
+  background: var(--bg-card);
+  color: var(--ink-soft);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.cert-nav-btn:hover {
+  background: var(--moss);
+  color: #fff;
+  border-color: var(--moss);
+  transform: scale(1.08);
+}
+
+/* Carousel */
+.cert-carousel {
+  position: relative;
+  overflow: hidden;
+  cursor: grab;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.cert-carousel:active { cursor: grabbing; }
+.cert-carousel-track {
+  display: flex;
+  gap: 20px;
+  will-change: transform;
+  transition: transform 0.1s linear;
+}
+.cert-carousel-track.no-transition { transition: none; }
 
 .cert-card {
+  flex-shrink: 0;
+  width: 280px;
   border-radius: 10px;
   overflow: hidden;
   background: var(--bg-card);
@@ -619,6 +662,31 @@ section { padding: 80px 0; }
   box-shadow: 0 14px 36px -16px rgba(43,40,35,0.14);
   border-color: var(--line);
 }
+
+/* Custom scrollbar */
+.cert-scrollbar {
+  margin-top: 20px;
+  width: 100%;
+}
+.cert-scrollbar-track {
+  height: 4px;
+  background: var(--bg-soft);
+  border-radius: 999px;
+  overflow: hidden;
+  position: relative;
+}
+.cert-scrollbar-thumb {
+  position: absolute;
+  top: 0; left: 0;
+  height: 100%;
+  width: 20%;
+  background: var(--moss);
+  border-radius: 999px;
+  cursor: grab;
+  transition: background 0.3s;
+}
+.cert-scrollbar-thumb:hover { background: var(--moss-deep); }
+.cert-scrollbar-thumb:active { cursor: grabbing; }
 
 /* Thumbnail with number badge + category tag */
 .cert-thumb {
@@ -849,7 +917,7 @@ section { padding: 80px 0; }
 
 /* ===== Responsive ===== */
 @media (max-width: 1200px) {
-  .cert-grid { grid-template-columns: repeat(3, 1fr); }
+  .cert-card { width: 260px; }
 }
 
 @media (max-width: 768px) {
@@ -866,7 +934,8 @@ section { padding: 80px 0; }
   .work-card.featured .work-visual { height: 180px; }
   .achievements-grid { grid-template-columns: 1fr; gap: 28px; }
   .about-stats { flex-direction: column; gap: 14px; }
-  .cert-grid { grid-template-columns: 1fr 1fr; gap: 16px; }
+  .cert-card { width: 240px; }
+  .cert-carousel-track { gap: 16px; }
   .highlight-card { flex-direction: column; }
   .highlight-image { width: 100%; aspect-ratio: 3/2; }
   .highlight-info { padding: 18px; }
@@ -884,9 +953,9 @@ section { padding: 80px 0; }
 }
 
 @media (max-width: 480px) {
-  .cert-grid { grid-template-columns: 1fr; gap: 16px; }
-  .cert-body { padding: 14px; }
-  .cert-title { font-size: 0.875rem; }
+  .cert-card { width: 220px; }
+  .cert-nav-btn { width: 32px; height: 32px; }
+  .cert-gallery-header { flex-direction: column; align-items: flex-start; gap: 12px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
