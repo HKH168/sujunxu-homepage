@@ -402,24 +402,14 @@
       </div>
   </div>
 
-  <!-- Certificate Gallery -->
+  <!-- Certificate Gallery - Infinite Loop -->
   <div class="cert-gallery" style="margin-top:48px;">
-    <div class="cert-gallery-header">
-      <h3 class="cert-gallery-title">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15.5 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V8.5L15.5 3z"/><path d="M15 3v6h6"/></svg>
-        获奖证书展示
-      </h3>
-      <div class="cert-nav">
-        <button class="cert-nav-btn cert-nav-prev" aria-label="上一个">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
-        </button>
-        <button class="cert-nav-btn cert-nav-next" aria-label="下一个">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
-        </button>
-      </div>
-    </div>
-    <div class="cert-carousel" id="certCarousel">
-      <div class="cert-carousel-track" id="certTrack">
+    <h3 class="cert-gallery-title">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15.5 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V8.5L15.5 3z"/><path d="M15 3v6h6"/></svg>
+      获奖证书展示
+    </h3>
+    <div class="cert-marquee" id="certMarquee">
+      <div class="cert-marquee-track" id="certTrack1">
         <div class="cert-card reveal reveal-scale">
           <div class="cert-thumb">
             <img src="assets/award-ocsd-gold-backpack.png" alt="东方创意之星国赛金奖证书" loading="lazy">
@@ -565,11 +555,7 @@
           </div>
         </div>
       </div>
-      <div class="cert-scrollbar">
-        <div class="cert-scrollbar-track">
-          <div class="cert-scrollbar-thumb" id="certScrollThumb"></div>
-        </div>
-      </div>
+      <div class="cert-marquee-track" id="certTrack2" aria-hidden="true"></div>
     </div>
   </div>
 </section>
@@ -961,6 +947,149 @@
     });
   });
 
+  // ===== Certificate Marquee (Infinite Loop) =====
+  (function() {
+    var marquee = document.getElementById('certMarquee');
+    var track1 = document.getElementById('certTrack1');
+    var track2 = document.getElementById('certTrack2');
+    if (!marquee || !track1 || !track2) return;
+
+    // Clone track1 content into track2 for seamless loop
+    track2.innerHTML = track1.innerHTML;
+
+    var currentX = 0;
+    var speed = 0.5; // base scroll speed (px per frame)
+    var targetSpeed = speed;
+    var isHovering = false;
+    var isDragging = false;
+    var dragStartX = 0;
+    var dragStartScroll = 0;
+    var velocity = 0;
+    var trackWidth = 0;
+
+    // Respect reduced motion preference
+    var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (reduceMotion) { speed = 0; targetSpeed = 0; }
+
+    function getTrackWidth() {
+      trackWidth = track1.scrollWidth;
+    }
+    getTrackWidth();
+    window.addEventListener('resize', getTrackWidth);
+
+    function animate() {
+      if (!isDragging) {
+        // Ease speed toward target
+        speed += (targetSpeed - speed) * 0.04;
+        currentX -= speed;
+
+        // Inertia after drag
+        if (Math.abs(velocity) > 0.1) {
+          currentX -= velocity;
+          velocity *= 0.95;
+        }
+
+        // Seamless loop: when track1 fully scrolled out, reset
+        if (Math.abs(currentX) >= trackWidth) {
+          currentX += trackWidth;
+        }
+
+        var transform = 'translateX(' + currentX + 'px)';
+        track1.style.transform = transform;
+        track2.style.transform = transform;
+      }
+      requestAnimationFrame(animate);
+    }
+    animate();
+
+    // Hover pause
+    marquee.addEventListener('mouseenter', function() {
+      isHovering = true;
+      targetSpeed = 0;
+    });
+    marquee.addEventListener('mouseleave', function() {
+      isHovering = false;
+      if (!isDragging) targetSpeed = 0.5;
+    });
+
+    // Mouse drag
+    marquee.addEventListener('mousedown', function(e) {
+      isDragging = true;
+      marquee.classList.add('dragging');
+      dragStartX = e.clientX;
+      dragStartScroll = currentX;
+      velocity = 0;
+      e.preventDefault();
+    });
+    document.addEventListener('mousemove', function(e) {
+      if (!isDragging) return;
+      var deltaX = e.clientX - dragStartX;
+      var newX = dragStartScroll + deltaX;
+      // Wrap within bounds
+      while (newX > 0) newX -= trackWidth;
+      while (newX < -trackWidth) newX += trackWidth;
+      currentX = newX;
+      velocity = -deltaX * 0.1;
+      var transform = 'translateX(' + currentX + 'px)';
+      track1.style.transform = transform;
+      track2.style.transform = transform;
+    });
+    document.addEventListener('mouseup', function() {
+      if (isDragging) {
+        isDragging = false;
+        marquee.classList.remove('dragging');
+        // Apply inertia, then return to base speed
+        setTimeout(function() {
+          if (!isHovering) targetSpeed = 0.5;
+        }, 800);
+      }
+    });
+
+    // Touch support
+    var touchStartX = 0;
+    var touchStartScroll = 0;
+    var touchVelocity = 0;
+    var lastTouchX = 0;
+    var lastTouchTime = 0;
+
+    marquee.addEventListener('touchstart', function(e) {
+      isDragging = true;
+      touchStartX = e.touches[0].clientX;
+      touchStartScroll = currentX;
+      lastTouchX = touchStartX;
+      lastTouchTime = Date.now();
+      touchVelocity = 0;
+      targetSpeed = 0;
+    }, { passive: true });
+
+    marquee.addEventListener('touchmove', function(e) {
+      if (!isDragging) return;
+      var deltaX = e.touches[0].clientX - touchStartX;
+      var newX = touchStartScroll + deltaX;
+      while (newX > 0) newX -= trackWidth;
+      while (newX < -trackWidth) newX += trackWidth;
+      currentX = newX;
+      var now = Date.now();
+      var dt = now - lastTouchTime;
+      if (dt > 0) {
+        touchVelocity = (lastTouchX - e.touches[0].clientX) / dt * 2;
+      }
+      lastTouchX = e.touches[0].clientX;
+      lastTouchTime = now;
+      var transform = 'translateX(' + currentX + 'px)';
+      track1.style.transform = transform;
+      track2.style.transform = transform;
+    }, { passive: true });
+
+    marquee.addEventListener('touchend', function() {
+      isDragging = false;
+      velocity = touchVelocity;
+      setTimeout(function() {
+        targetSpeed = 0.5;
+      }, 600);
+    });
+  })();
+
   // ===== Section enter glow effect =====
   var glowObserver = new IntersectionObserver(function(entries) {
     entries.forEach(function(entry) {
@@ -971,297 +1100,6 @@
     });
   }, { threshold: 0.15 });
   document.querySelectorAll('section').forEach(function(s) { glowObserver.observe(s); });
-
-  // ===== Certificate Carousel (Infinite Loop + Drag) =====
-  (function() {
-    var carousel = document.getElementById('certCarousel');
-    var track = document.getElementById('certTrack');
-    var thumb = document.getElementById('certScrollThumb');
-    var prevBtn = document.querySelector('.cert-nav-prev');
-    var nextBtn = document.querySelector('.cert-nav-next');
-    if (!carousel || !track) return;
-
-    // Clone cards for infinite loop
-    var cards = track.querySelectorAll('.cert-card');
-    var cardCount = cards.length;
-    for (var i = 0; i < cardCount; i++) {
-      var clone = cards[i].cloneNode(true);
-      clone.classList.add('clone');
-      track.appendChild(clone);
-    }
-
-    var currentX = 0;
-    var isDragging = false;
-    var startX = 0;
-    var startScroll = 0;
-    var velocity = 0;
-    var lastX = 0;
-    var lastTime = 0;
-    var animationId = null;
-    var cardWidth = 0;
-    var gap = 20;
-
-    function getCardWidth() {
-      var firstCard = track.querySelector('.cert-card');
-      if (firstCard) {
-        cardWidth = firstCard.offsetWidth + gap;
-      }
-      return cardWidth;
-    }
-
-    function getTotalWidth() {
-      return cardWidth * cardCount;
-    }
-
-    function updateThumb() {
-      if (!thumb) return;
-      var viewportWidth = carousel.offsetWidth;
-      var totalScroll = getTotalWidth();
-      if (totalScroll <= viewportWidth) {
-        thumb.style.width = '100%';
-        thumb.style.left = '0';
-        return;
-      }
-      var thumbWidth = (viewportWidth / totalScroll) * 100;
-      thumb.style.width = thumbWidth + '%';
-      var normalizedX = ((-currentX % getTotalWidth()) + getTotalWidth()) % getTotalWidth();
-      var thumbLeft = (normalizedX / totalScroll) * (100 - thumbWidth);
-      thumb.style.left = thumbLeft + '%';
-    }
-
-    function setTransform(x) {
-      currentX = x;
-      track.style.transform = 'translateX(' + x + 'px)';
-      updateThumb();
-    }
-
-    // Infinite loop: when we scroll past cloned set, jump back
-    function checkLoop() {
-      var totalW = getTotalWidth();
-      if (currentX <= -totalW) {
-        track.classList.add('no-transition');
-        currentX += totalW;
-        track.style.transform = 'translateX(' + currentX + 'px)';
-        // Force reflow
-        track.offsetHeight;
-        track.classList.remove('no-transition');
-      } else if (currentX > 0) {
-        track.classList.add('no-transition');
-        currentX -= totalW;
-        track.style.transform = 'translateX(' + currentX + 'px)';
-        track.offsetHeight;
-        track.classList.remove('no-transition');
-      }
-    }
-
-    // Momentum animation
-    function animateMomentum() {
-      if (Math.abs(velocity) < 0.1) {
-        velocity = 0;
-        return;
-      }
-      velocity *= 0.95;
-      currentX += velocity;
-      checkLoop();
-      track.style.transform = 'translateX(' + currentX + 'px)';
-      updateThumb();
-      animationId = requestAnimationFrame(animateMomentum);
-    }
-
-    // Drag events
-    carousel.addEventListener('mousedown', function(e) {
-      if (e.target.closest('a, button')) return;
-      isDragging = true;
-      startX = e.clientX;
-      startScroll = currentX;
-      lastX = e.clientX;
-      lastTime = Date.now();
-      velocity = 0;
-      if (animationId) cancelAnimationFrame(animationId);
-      track.style.transition = 'none';
-      carousel.style.cursor = 'grabbing';
-      e.preventDefault();
-    });
-
-    document.addEventListener('mousemove', function(e) {
-      if (!isDragging) return;
-      var dx = e.clientX - startX;
-      setTransform(startScroll + dx);
-      var now = Date.now();
-      var dt = now - lastTime;
-      if (dt > 0) {
-        velocity = (e.clientX - lastX) / dt * 16;
-      }
-      lastX = e.clientX;
-      lastTime = now;
-    });
-
-    document.addEventListener('mouseup', function() {
-      if (!isDragging) return;
-      isDragging = false;
-      track.style.transition = '';
-      carousel.style.cursor = '';
-      // Start momentum
-      animateMomentum();
-    });
-
-    // Touch events
-    carousel.addEventListener('touchstart', function(e) {
-      isDragging = true;
-      startX = e.touches[0].clientX;
-      startScroll = currentX;
-      lastX = e.touches[0].clientX;
-      lastTime = Date.now();
-      velocity = 0;
-      if (animationId) cancelAnimationFrame(animationId);
-      track.style.transition = 'none';
-    }, { passive: true });
-
-    carousel.addEventListener('touchmove', function(e) {
-      if (!isDragging) return;
-      var dx = e.touches[0].clientX - startX;
-      setTransform(startScroll + dx);
-      var now = Date.now();
-      var dt = now - lastTime;
-      if (dt > 0) {
-        velocity = (e.touches[0].clientX - lastX) / dt * 16;
-      }
-      lastX = e.touches[0].clientX;
-      lastTime = now;
-    }, { passive: true });
-
-    carousel.addEventListener('touchend', function() {
-      if (!isDragging) return;
-      isDragging = false;
-      track.style.transition = '';
-      animateMomentum();
-    });
-
-    // Wheel horizontal scroll
-    carousel.addEventListener('wheel', function(e) {
-      e.preventDefault();
-      var delta = e.deltaY || e.deltaX;
-      currentX -= delta * 0.8;
-      checkLoop();
-      track.style.transform = 'translateX(' + currentX + 'px)';
-      updateThumb();
-    }, { passive: false });
-
-    // Nav buttons
-    function scrollByCards(n) {
-      var w = getCardWidth();
-      var target = currentX - n * w;
-      // Smooth scroll
-      var start = currentX;
-      var change = target - start;
-      var duration = 500;
-      var startTime = null;
-      function easeOutCubic(t) { return 1 - Math.pow(1 - t, 3); }
-      function step(timestamp) {
-        if (!startTime) startTime = timestamp;
-        var progress = Math.min((timestamp - startTime) / duration, 1);
-        setTransform(start + change * easeOutCubic(progress));
-        checkLoop();
-        if (progress < 1) requestAnimationFrame(step);
-      }
-      requestAnimationFrame(step);
-    }
-
-    if (prevBtn) prevBtn.addEventListener('click', function() { scrollByCards(-1); });
-    if (nextBtn) nextBtn.addEventListener('click', function() { scrollByCards(1); });
-
-    // Custom scrollbar drag
-    var scrollbarTrack = document.querySelector('.cert-scrollbar-track');
-    var isThumbDragging = false;
-    var thumbStartX = 0;
-    var thumbStartLeft = 0;
-
-    if (thumb && scrollbarTrack) {
-      thumb.addEventListener('mousedown', function(e) {
-        isThumbDragging = true;
-        thumbStartX = e.clientX;
-        thumbStartLeft = parseFloat(thumb.style.left) || 0;
-        e.preventDefault();
-      });
-
-      document.addEventListener('mousemove', function(e) {
-        if (!isThumbDragging) return;
-        var trackRect = scrollbarTrack.getBoundingClientRect();
-        var dx = e.clientX - thumbStartX;
-        var trackW = trackRect.width;
-        var thumbW = thumb.offsetWidth;
-        var maxLeft = trackW - thumbW;
-        var newLeft = (thumbStartLeft / 100 * trackW) + dx;
-        newLeft = Math.max(0, Math.min(newLeft, maxLeft));
-        var leftPercent = (newLeft / trackW) * 100;
-        thumb.style.left = leftPercent + '%';
-        // Sync carousel
-        var totalW = getTotalWidth();
-        var viewportW = carousel.offsetWidth;
-        var scrollPercent = leftPercent / (100 - (viewportW / totalW * 100));
-        currentX = -scrollPercent * (totalW - viewportW);
-        checkLoop();
-        track.style.transform = 'translateX(' + currentX + 'px)';
-      });
-
-      document.addEventListener('mouseup', function() {
-        isThumbDragging = false;
-      });
-
-      // Click on track to jump
-      scrollbarTrack.addEventListener('click', function(e) {
-        if (e.target === thumb) return;
-        var trackRect = scrollbarTrack.getBoundingClientRect();
-        var clickX = e.clientX - trackRect.left;
-        var thumbW = thumb.offsetWidth;
-        var targetLeft = clickX - thumbW / 2;
-        var maxLeft = trackRect.width - thumbW;
-        targetLeft = Math.max(0, Math.min(targetLeft, maxLeft));
-        var leftPercent = (targetLeft / trackRect.width) * 100;
-        var totalW = getTotalWidth();
-        var viewportW = carousel.offsetWidth;
-        var scrollPercent = leftPercent / (100 - (viewportW / totalW * 100));
-        currentX = -scrollPercent * (totalW - viewportW);
-        checkLoop();
-        track.style.transform = 'translateX(' + currentX + 'px)';
-        updateThumb();
-      });
-    }
-
-    // Auto slow scroll when idle
-    var autoScrollId = null;
-    var isHovering = false;
-
-    function startAutoScroll() {
-      if (autoScrollId) return;
-      function tick() {
-        if (!isHovering && !isDragging) {
-          currentX -= 0.3;
-          checkLoop();
-          track.style.transform = 'translateX(' + currentX + 'px)';
-          updateThumb();
-        }
-        autoScrollId = requestAnimationFrame(tick);
-      }
-      autoScrollId = requestAnimationFrame(tick);
-    }
-
-    carousel.addEventListener('mouseenter', function() { isHovering = true; });
-    carousel.addEventListener('mouseleave', function() { isHovering = false; });
-
-    // Initialize
-    window.addEventListener('load', function() {
-      getCardWidth();
-      updateThumb();
-      // Start auto-scroll after a short delay
-      setTimeout(startAutoScroll, 2000);
-    });
-
-    window.addEventListener('resize', function() {
-      getCardWidth();
-      updateThumb();
-    });
-  })();
 </script>
 
 </body>
